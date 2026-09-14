@@ -5,15 +5,11 @@
 import re
 import threading
 
-# Loaded lazily
-wsgilib = None
-local = None
-
 __all__ = ['DispatchingConfig', 'CONFIG', 'ConfigMiddleware', 'PrefixMiddleware']
 
 
 def local_dict():
-    global config_local, local
+    global config_local
     try:
         return config_local.wsgi_dict
     except NameError:
@@ -136,6 +132,26 @@ class DispatchingConfig:
 CONFIG = DispatchingConfig()
 
 
+class _CloseableIterator:
+    """Wraps a WSGI app iterator to call a close callback after iteration."""
+
+    def __init__(self, app_iter, close_func):
+        self.app_iter = app_iter
+        self._iter = iter(app_iter)
+        self.close_func = close_func
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return next(self._iter)
+
+    def close(self):
+        if hasattr(self.app_iter, 'close'):
+            self.app_iter.close()
+        self.close_func()
+
+
 class ConfigMiddleware:
     """
     A WSGI middleware that adds a ``paste.config`` key to the request
@@ -152,9 +168,6 @@ class ConfigMiddleware:
         self.config = config
 
     def __call__(self, environ, start_response):
-        global wsgilib
-        if wsgilib is None:
-            from paste import wsgilib
         popped_config = None
         if 'paste.config' in environ:
             popped_config = environ['paste.config']
@@ -182,8 +195,7 @@ class ConfigMiddleware:
             def close_config():
                 CONFIG.pop_thread_config(conf)
 
-            new_app_iter = wsgilib.add_close(app_iter, close_config)
-            return new_app_iter
+            return _CloseableIterator(app_iter, close_config)
 
 
 def make_config_filter(app, global_conf, **local_conf):
