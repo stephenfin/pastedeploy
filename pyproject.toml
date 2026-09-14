@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools >= 64.0.0, < 69.0.0"]
+requires = ["setuptools >= 77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,7 @@ name = "PasteDeploy"
 version = "3.1.0"
 description = "Load, configure, and compose WSGI applications and servers"
 readme = {file = "README.rst", content-type = "text/x-rst"}
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Ian Bicking", email = "pylons-discuss@googlegroups.com"},
 ]
@@ -18,7 +18,6 @@ keywords = ["web", "wsgi", "application", "server"]
 classifiers = [
     "Development Status :: 6 - Mature",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -61,9 +60,6 @@ prefix = "paste.deploy.config:make_prefix_middleware"
 
 [project.entry-points."paste.paster_create_template"]
 paste_deploy = "paste.deploy.paster_templates:PasteDeploy"
-
-[tool.setuptools]
-namespace-packages = ["paste"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
